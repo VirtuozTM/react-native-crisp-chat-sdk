@@ -35,7 +35,8 @@ type CrispChatSdkType = {
     title?: string,
     category?: string
   ): () => void;
-  logCache(): () => void;
+  addCallback(): () => void;
+  removeCallback(): () => void;
 };
 
 const CrispChatSdk = NativeModules.CrispChatSdk as CrispChatSdkType;
@@ -120,6 +121,10 @@ export const openHelpdeskArticle = (
   CrispChatSdk.show(); // Search runs on next open → force opening the chat
 };
 
-export const logCache = () => {
-  CrispChatSdk.logCache();
+export const addCrispEventListeners = () => {
+  CrispChatSdk.addCallback();
+};
+
+export const removeCrispEventListeners = () => {
+  CrispChatSdk.removeCallback();
 };

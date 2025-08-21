@@ -1,6 +1,7 @@
 package com.reactnativecrispchatsdk
 
 import android.content.Intent
+import android.util.Log
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
@@ -9,6 +10,8 @@ import im.crisp.client.external.ChatActivity
 import im.crisp.client.external.Crisp
 import im.crisp.client.external.data.SessionEvent
 import im.crisp.client.external.data.SessionEvent.Color
+import im.crisp.client.external.data.message.Message;
+import im.crisp.client.external.EventsCallback
 
 
 class CrispChatSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -116,5 +119,53 @@ class CrispChatSdkModule(reactContext: ReactApplicationContext) : ReactContextBa
     fun openHelpdeskArticle(id: String, locale: String, title: String?, category: String?) {
         val context = reactApplicationContext
         Crisp.openHelpdeskArticle(context, id, locale, title, category)
+    
+    companion object {
+        private val CRISP_EVENTS_CALLBACK = object : EventsCallback {
+            override fun onSessionLoaded(sessionId: String) {
+                Log.i("CrispChatSdk", "onSessionLoaded: $sessionId")
+            }
+
+            override fun onChatOpened() {
+                Log.i("CrispChatSdk", "onChatOpened")
+            }
+
+            override fun onChatClosed() {
+                Log.i("CrispChatSdk", "onChatClosed")
+            }
+
+            override fun onMessageSent(message: Message) {
+                Log.i("CrispChatSdk", "onMessageSent: ${message.toJSON()}")
+            }
+
+            override fun onMessageReceived(message: Message) {
+                Log.i("CrispChatSdk", "onMessageReceived: ${message.toJSON()}")
+            }
+        }
+
+        @Volatile
+        private var callbacksRegistered: Boolean = false
+    }
+
+    @ReactMethod
+    fun addCallback() {
+        if (callbacksRegistered) {
+            Log.i("CrispChatSdk", "addCallback: already registered, skipping")
+            return
+        }
+        Crisp.addCallback(CRISP_EVENTS_CALLBACK)
+        callbacksRegistered = true
+        Log.i("CrispChatSdk", "addCallback: registered")
+    }
+
+    @ReactMethod
+    fun removeCallback() {
+        if (!callbacksRegistered) {
+            Log.i("CrispChatSdk", "removeCallback: not registered, skipping")
+            return
+        }
+        Crisp.removeCallback(CRISP_EVENTS_CALLBACK)
+        callbacksRegistered = false
+        Log.i("CrispChatSdk", "removeCallback: removed")
     }
 }
