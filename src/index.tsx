@@ -1,5 +1,11 @@
 import * as React from 'react';
-import { NativeModules, View } from 'react-native';
+
+import {
+  NativeModules,
+  View,
+  NativeEventEmitter,
+  NativeModule,
+} from 'react-native';
 
 export enum CrispSessionEventColors {
   RED = 0,
@@ -39,7 +45,19 @@ type CrispChatSdkType = {
   removeCallback(): () => void;
 };
 
-const CrispChatSdk = NativeModules.CrispChatSdk as CrispChatSdkType;
+const { CrispChatSdk } = NativeModules as { CrispChatSdk: CrispChatSdkType };
+const crispEventEmitter = new NativeEventEmitter(NativeModules.CrispChatSdk);
+
+export const addCrispChatOpenedListener = () => {
+  let eventListener = crispEventEmitter.addListener('onChatOpened', (event) => {
+    alert('onChatOpened');
+    console.log('onChatOpened', event);
+  });
+
+  return () => {
+    eventListener.remove();
+  };
+};
 
 const CrispChat: React.FC = () => {
   React.useEffect(() => {
